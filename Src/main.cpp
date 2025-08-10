@@ -2,6 +2,8 @@
 #include "User.hpp"
 #include <iostream>
 #include <string>
+#include "menu.hpp"
+#include <memory>
 
 enum class LoginState {
     MENU,
@@ -26,6 +28,15 @@ int main() {
     titleText.setCharacterSize(32);
     titleText.setPosition({250, 50});
     titleText.setFillColor(sf::Color::Black);
+
+    //Title after succesfully login
+
+sf::Text gameTitleText(font);
+gameTitleText.setString("SuDoKu");
+gameTitleText.setCharacterSize(48);  // Larger size for main title
+gameTitleText.setPosition({320, 50});
+gameTitleText.setFillColor(sf::Color::Black);
+gameTitleText.setStyle(sf::Text::Bold);
 
     // Menu options
     sf::Text newUserOption(font);
@@ -78,9 +89,11 @@ int main() {
     std::string userInput = "";
     User user;
     bool showInstructions = true;
+    std::unique_ptr<Menu> gameMenu;
+    bool menuInitialized = false;
 
     while (window.isOpen()) {
-        while (const std::optional event = window.pollEvent()) {
+        while (auto event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()) {
                 window.close();
             }
@@ -164,13 +177,23 @@ int main() {
                     }
                 }
             }
+            else if (currentState == LoginState::LOGGED_IN && gameMenu) {
+             gameMenu->handleEvent(*event, window);
+        }
         }
 
         // Clear and draw
         window.clear(sf::Color::White);
         
-        // Always draw title
-        window.draw(titleText);
+        // Only draw Title if Not in logged in state
+        if (currentState != LoginState::LOGGED_IN) {
+    window.draw(titleText);
+}
+
+//IF successfuly login
+        if (currentState == LoginState::LOGGED_IN) {
+    window.draw(gameTitleText);
+        }
         
         // Draw based on current state
         switch (currentState) {
@@ -191,23 +214,27 @@ int main() {
                 break;
                 
             case LoginState::LOGGED_IN:
-                // Success screen
-                sf::Text successText(font);
-                successText.setString("Login Successful!");
-                successText.setCharacterSize(28);
-                successText.setPosition({280, 200});
-                successText.setFillColor(sf::Color::Green);
-                window.draw(successText);
-                
-                sf::Text continueText(font);
-                continueText.setString("Game will start here...");
-                continueText.setCharacterSize(20);
-                continueText.setPosition({290, 250});
-                continueText.setFillColor(sf::Color::Black);
-                window.draw(continueText);
-                
-                window.draw(statusMessage);
-                break;
+                // Initialize menu once
+                if (!menuInitialized) {
+                     gameMenu = std::make_unique<Menu>(font);
+                    gameMenu->setPosition(300, 200);
+                    gameMenu->addButton("Play Sudoku", []{});
+                     gameMenu->addButton("View Ranking", []{});
+                     gameMenu->addButton("Exit", [&]{ 
+                        currentState = LoginState::MENU;
+                        userInput = "";
+                        inputDisplay.setString("");
+                        statusMessage.setString("");
+                        showInstructions = true;
+                        menuInitialized = false;
+                      });
+                    menuInitialized = true;
+    }
+
+    // Draw menu (replaces the success text)
+    gameMenu->draw(window);
+    window.draw(statusMessage); // Keep your existing status message
+    break;
         }
         
         window.display();
