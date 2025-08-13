@@ -4,14 +4,18 @@
 #include <string>
 #include "menu.hpp"
 #include <memory>
+#include "LevelSelection.hpp"
+#include "SudokuGame.hpp"
 
 enum class LoginState {
     MENU,
     NEW_USER_NAME,
     EXISTING_USER_ID,
-    LOGGED_IN
+    LOGGED_IN,
+    PLAYING_SUDOKU
 };
-
+std::unique_ptr<SudokuGame> currentSudoku; 
+int currentLevel = 1; 
 int main() {
     sf::RenderWindow window(sf::VideoMode({800, 600}), "Sudoku Login");
     
@@ -44,6 +48,12 @@ gameTitleText.setStyle(sf::Text::Bold);
     newUserOption.setCharacterSize(24);
     newUserOption.setPosition({300, 150});
     newUserOption.setFillColor(sf::Color::Blue);
+
+sf::Text timerText(font);
+timerText.setCharacterSize(24);
+timerText.setPosition({600, 20}); // top-right corner
+timerText.setFillColor(sf::Color::Red);
+
 
     sf::Text existingUserOption(font);
     existingUserOption.setString("2. Existing User");
@@ -100,18 +110,39 @@ gameTitleText.setStyle(sf::Text::Bold);
             
             else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
                 // Escape key handling
-                if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
-                    if (currentState == LoginState::MENU) {
-                        window.close();
-                    } else if (currentState != LoginState::LOGGED_IN) {
-                        // Go back to menu
-                        currentState = LoginState::MENU;
-                        userInput = "";
-                        inputDisplay.setString("");
-                        statusMessage.setString("");
-                        showInstructions = true;
-                    }
-                }
+               if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
+    if (currentState == LoginState::MENU) {
+        window.close();
+    } 
+    else if (currentState == LoginState::PLAYING_SUDOKU) {
+        // Return to level selection instead of main menu
+        LevelSelection levelSelection(font, user.getUnlockedLevel());
+        if (levelSelection.run(window)) {
+            currentLevel = levelSelection.getSelectedLevel();
+
+            // Create Sudoku game for new level
+            int difficulty = 1;
+            if(currentLevel >= 3 && currentLevel <= 4) difficulty = 2;
+            else if(currentLevel >= 5 && currentLevel <= 6) difficulty = 3;
+            else if(currentLevel >= 7) difficulty = 4;
+
+            currentSudoku = std::make_unique<SudokuGame>(font, difficulty, user.getDiamonds());
+            currentState = LoginState::PLAYING_SUDOKU;
+        } else {
+            // If they cancel level selection, go back to menu
+            currentState = LoginState::LOGGED_IN;
+        }
+    }
+    else if (currentState != LoginState::LOGGED_IN) {
+        // Go back to menu for other states
+        currentState = LoginState::MENU;
+        userInput = "";
+        inputDisplay.setString("");
+        statusMessage.setString("");
+        showInstructions = true;
+    }
+}
+
                 
                 // Menu selection (only when in menu state)
                 else if (currentState == LoginState::MENU) {
@@ -180,8 +211,51 @@ gameTitleText.setStyle(sf::Text::Bold);
             else if (currentState == LoginState::LOGGED_IN && gameMenu) {
              gameMenu->handleEvent(*event, window);
         }
+        if(const auto* mousePressed = event->getIf<sf::Event::MouseButtonPressed>()) {
+                     if(mousePressed->button == sf::Mouse::Button::Left && currentState == LoginState::PLAYING_SUDOKU){
+                        sf::Vector2f mousePos = window.mapPixelToCoords({mousePressed->position.x, mousePressed->position.y});
+                        currentSudoku->handleMouseClick(mousePos);
+                    }
+                 }
+                 if(const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+             int num = 0;
+             switch(keyPressed->code) {
+                 case sf::Keyboard::Key::Num1: num = 1; break;
+                 case sf::Keyboard::Key::Num2: num = 2; break;
+                case sf::Keyboard::Key::Num3: num = 3; break;
+                case sf::Keyboard::Key::Num4: num = 4; break;
+                case sf::Keyboard::Key::Num5: num = 5; break;
+                 case sf::Keyboard::Key::Num6: num = 6; break;
+                 case sf::Keyboard::Key::Num7: num = 7; break;
+                case sf::Keyboard::Key::Num8: num = 8; break;
+                 case sf::Keyboard::Key::Num9: num = 9; break;
+             default: num = 0; break;
+              }
+    
+              if(num > 0  && currentState == LoginState::PLAYING_SUDOKU) {
+         currentSudoku->handleKeyboardInput(num);
+            }
         }
 
+        }
+        
+
+  if (currentState == LoginState::PLAYING_SUDOKU && currentSudoku) {
+        if (currentSudoku->isCompleted()) {
+            std::cout << "Level Completed!\n";
+            if (currentLevel == user.getUnlockedLevel() && currentLevel < 8) {
+                user.setUnlockedLevel(currentLevel + 1);
+                user.save();
+            }
+            currentSudoku.reset();
+            currentState = LoginState::LOGGED_IN;
+        } 
+        else if (currentSudoku->getRemainingTime() <= 0) {
+            std::cout << "Time over!\n";
+            currentSudoku.reset();
+            currentState = LoginState::LOGGED_IN;
+        }
+    }
         // Clear and draw
         window.clear(sf::Color::White);
         
@@ -194,7 +268,8 @@ gameTitleText.setStyle(sf::Text::Bold);
         if (currentState == LoginState::LOGGED_IN) {
     window.draw(gameTitleText);
         }
-        
+        // Clear window
+window.clear(sf::Color::White);
         // Draw based on current state
         switch (currentState) {
             case LoginState::MENU:
@@ -218,7 +293,20 @@ gameTitleText.setStyle(sf::Text::Bold);
                 if (!menuInitialized) {
                      gameMenu = std::make_unique<Menu>(font);
                     gameMenu->setPosition(300, 200);
-                    gameMenu->addButton("Play Sudoku", []{});
+                    gameMenu->addButton("Play Sudoku", [&](){
+                    LevelSelection levelSelection(font, user.getUnlockedLevel());
+                    if(levelSelection.run(window)) {
+                        currentLevel = levelSelection.getSelectedLevel();
+                            // Create Sudoku game based on difficulty
+                         // For simplicity: level 1-2 = Easy, 3-4 = Medium, 5-6 = Hard, 7-8 = Very Hard
+                    int difficulty = 1;
+                    if(currentLevel >= 3 && currentLevel <= 4) difficulty = 2;
+                    else if(currentLevel >= 5 && currentLevel <= 6) difficulty = 3;
+                    else if(currentLevel >= 7) difficulty = 4;
+                    currentSudoku = std::make_unique<SudokuGame>(font, difficulty, user.getDiamonds());
+                    currentState = LoginState::PLAYING_SUDOKU;
+                    }
+                    });
                      gameMenu->addButton("View Ranking", []{});
                      gameMenu->addButton("Exit", [&]{ 
                         currentState = LoginState::MENU;
@@ -229,13 +317,28 @@ gameTitleText.setStyle(sf::Text::Bold);
                         menuInitialized = false;
                       });
                     menuInitialized = true;
-    }
+             }
 
     // Draw menu (replaces the success text)
     gameMenu->draw(window);
     window.draw(statusMessage); // Keep your existing status message
     break;
-        }
+
+    case LoginState::PLAYING_SUDOKU:
+      if (currentSudoku) {
+        currentSudoku->draw(window);
+
+        // Display remaining time
+        int remainingTime = currentSudoku->getRemainingTime(); // in seconds
+        int minutes = remainingTime / 60;
+        int seconds = remainingTime % 60;
+        timerText.setString("Time: " + std::to_string(minutes) + ":" + (seconds < 10 ? "0" : "") + std::to_string(seconds));
+
+        window.draw(timerText); // draw it on top
+    }
+     
+        break;
+    }
         
         window.display();
     }
