@@ -7,13 +7,16 @@
 &nbsp; ii. Add the path of include folder in Inlcude path option.
 4. You are ready to go now.
 5. To run use this code:
-    ```
-    //To Develop
-
-g++ main.cpp User.cpp -I../SFML-3.0.0/include -L../SFML-3.0.0/lib -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -o main
+   
+    To Develop
+```
+     g++ main.cpp User.cpp Menu.cpp LevelSelection.cpp SudokuGame.cpp -I../SFML-3.0.0/include -L../SFML-3.0.0/lib -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -o main
+```
 
     AND
-    //To run
+    To run
 
+```
     ./file_name 
-    ```
+   
+ ```
