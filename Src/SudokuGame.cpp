@@ -87,6 +87,12 @@ void SudokuGame::draw(sf::RenderWindow& window) {
     sf::Vector2u winSize = window.getSize();
     sf::Vector2f startPos((winSize.x - boardSize) / 2.f, (winSize.y - boardSize) / 2.f);
 
+    sf::Text diamondText(font, "Diamonds: " + std::to_string(diamonds), 24);
+    diamondText.setFillColor(sf::Color::Magenta);
+    diamondText.setPosition({20.f, 20.f});
+    window.draw(diamondText);
+
+
     // Draw all small cells (thin lines)
     sf::RectangleShape cell(sf::Vector2f(cellSize, cellSize));
     cell.setFillColor(sf::Color::White);
@@ -145,7 +151,7 @@ void SudokuGame::handleMouseClick(sf::Vector2f mousePos){
 }
 
 // Keyboard input
-void SudokuGame::handleKeyboardInput(int number){
+void SudokuGame::handleKeyboardInput(int number, User& user){
     if(selectedRow == -1 || selectedCol == -1) return; // no cell selected
     if(fixedCells[selectedRow][selectedCol]) return;   // cannot change fixed cell
 
@@ -155,7 +161,19 @@ void SudokuGame::handleKeyboardInput(int number){
         cellColors[selectedRow][selectedCol] = sf::Color::Black;  // correct number
     } else {
         cellColors[selectedRow][selectedCol] = sf::Color::Red;    // wrong number
-        if(diamonds > 0) diamonds--;                              // reduce diamonds
+        if(diamonds>0)
+        {
+             diamonds--;    
+              user.reduceDiamonds(1); 
+        }                           // reduce diamonds
+           if(diamonds <0){
+            diamonds=0;
+        }
+        if(diamonds==0)
+        {
+            gameOver=true;
+        }
+        
     }
 }
 

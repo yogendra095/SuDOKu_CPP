@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <array>
 #include <string>
+#include "User.hpp"
 
 class SudokuGame {
 private:
@@ -23,11 +24,12 @@ private:
     void generateBoard(int difficulty);
 
 public:
+    bool gameOver=false;
     SudokuGame(sf::Font& font, int difficulty = 1, int diamonds = 3);
   
     void draw(sf::RenderWindow& window);
     void handleMouseClick(sf::Vector2f mousePos);
-    void handleKeyboardInput(int number);
+    void handleKeyboardInput(int number, User& user);
     void handleArrowKeys(sf::Keyboard::Key key);
     bool isCompleted() const;
     int getRemainingTime() const; // in seconds

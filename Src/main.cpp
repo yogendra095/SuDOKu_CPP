@@ -233,7 +233,7 @@ timerText.setFillColor(sf::Color::Red);
               }
     
               if(num > 0  && currentState == LoginState::PLAYING_SUDOKU) {
-         currentSudoku->handleKeyboardInput(num);
+         currentSudoku->handleKeyboardInput(num,user);
             }
         }
 
@@ -243,17 +243,26 @@ timerText.setFillColor(sf::Color::Red);
   if (currentState == LoginState::PLAYING_SUDOKU && currentSudoku) {
         if (currentSudoku->isCompleted()) {
             std::cout << "Level Completed!\n";
+             int reward = currentLevel; 
+            user.addDiamonds(reward);
             if (currentLevel == user.getUnlockedLevel() && currentLevel < 8) {
                 user.setUnlockedLevel(currentLevel + 1);
-                user.save();
             }
+            user.save();
             currentSudoku.reset();
             currentState = LoginState::LOGGED_IN;
         } 
         else if (currentSudoku->getRemainingTime() <= 0) {
             std::cout << "Time over!\n";
+                user.addDiamonds(currentSudoku->getDiamonds());
+                user.save();
             currentSudoku.reset();
             currentState = LoginState::LOGGED_IN;
+        }
+        else if(currentSudoku->getDiamonds() == 0 && currentSudoku->gameOver){
+        std::cout << "Game Over due to zero diamonds!\n";
+        currentSudoku.reset();
+        currentState = LoginState::LOGGED_IN;
         }
     }
         // Clear and draw

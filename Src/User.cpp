@@ -90,3 +90,5 @@ int User::getScore() const { return score; }
 int User::getDiamonds() const { return diamonds; }
 int User::getUnlockedLevel() const { return unlockedLevel; }
 void User::setUnlockedLevel(int lvl) { unlockedLevel = lvl; }
+void User::addDiamonds(int n) { diamonds += n; save(); }
+void User::reduceDiamonds(int n) { diamonds -= n; if(diamonds < 0) diamonds = 0; save(); }

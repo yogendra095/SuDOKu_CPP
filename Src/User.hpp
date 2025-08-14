@@ -18,6 +18,8 @@ public:
     int getScore() const;
     int getDiamonds() const;
     int getUnlockedLevel() const; 
+    void addDiamonds(int n);
+    void reduceDiamonds(int n);
 
     // Setter
     void setUnlockedLevel(int lvl); 
