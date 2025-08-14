@@ -1,10 +1,11 @@
 ## How to setup this project in local system
-### Be sure your sfml version is SFML-3.0.0 and has correct compiler that matches it
+### Be sure your Compiler Matches the SFML version 3.0.0((MinGW-W64 x86_64-ucrt-posix-seh, built by Brecht Sanders, r2) 14.2.0)
+1. Setup Compiler and be sure it is working.
 1. Clone this Repositories in your local System.
-2. Add the path of bin folder in environment.
+2. Add the path of SFML bin folder in environment.
 3. Open the Command Palate (Ctrl + Shift + P)<br>
 &nbsp; i. Open Edit Configuration UI.<br>
-&nbsp; ii. Add the path of include folder in Inlcude path option.
+&nbsp; ii. Add the path of SFML include folder in Inlcude path option.
 4. You are ready to go now.
 5. To run use this code:
    
