@@ -243,8 +243,16 @@ timerText.setFillColor(sf::Color::Red);
   if (currentState == LoginState::PLAYING_SUDOKU && currentSudoku) {
         if (currentSudoku->isCompleted()) {
             std::cout << "Level Completed!\n";
-             int reward = currentLevel; 
+             int reward = currentLevel; //Diamond
+             //For Score
+            int baseScore = currentLevel * 100;
+            int InitialValue = 50;
+            int remainingTime = currentSudoku->getRemainingTime();
+            int timeBonus = std::max(0, (remainingTime * baseScore) / InitialValue);
+         int finalScore = baseScore + timeBonus;
+          if (finalScore < 0) finalScore = 0;
             user.addDiamonds(reward);
+             user.addScore(finalScore);
             if (currentLevel == user.getUnlockedLevel() && currentLevel < 8) {
                 user.setUnlockedLevel(currentLevel + 1);
             }

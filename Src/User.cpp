@@ -4,6 +4,11 @@
 #include <iomanip>
 #include<vector>
 
+static std::string generateId() {
+    return std::to_string(std::time(nullptr)) + std::to_string(rand() % 1000);
+}
+
+
 User::User() : score(0), diamonds(3),unlockedLevel(1) {}
 
 bool User::login(const std::string& name) {
@@ -31,16 +36,19 @@ bool User::login(const std::string& name) {
 
 
 void User::createNew(const std::string& name) {
-    std::ifstream file("users.txt");
-    int count = 0;
-    std::string temp;
-    while (getline(file, temp)) ++count;
-    id = "ID" + std::to_string(100 + count + 1);
+    // Generate truly unique ID using timestamp + random
+    id = generateId();
+    
     this->name = name;
     score = 0;
     diamonds = 3;
     unlockedLevel = 1;
-    save();
+
+    // Append directly instead of replacing anyone
+    std::ofstream file("users.txt", std::ios::app);
+    file << id << " " << this->name << " "
+         << score << " " << diamonds << " "
+         << unlockedLevel << "\n";
 }
 
 void User::save() {
@@ -92,3 +100,7 @@ int User::getUnlockedLevel() const { return unlockedLevel; }
 void User::setUnlockedLevel(int lvl) { unlockedLevel = lvl; }
 void User::addDiamonds(int n) { diamonds += n; save(); }
 void User::reduceDiamonds(int n) { diamonds -= n; if(diamonds < 0) diamonds = 0; save(); }
+void User::addScore(int n) { 
+    score += n; 
+    save(); 
+}

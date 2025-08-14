@@ -16,6 +16,7 @@ public:
     std::string getId() const;
     std::string getName() const;
     int getScore() const;
+    void addScore(int n);
     int getDiamonds() const;
     int getUnlockedLevel() const; 
     void addDiamonds(int n);
