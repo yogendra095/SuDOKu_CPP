@@ -18,7 +18,26 @@ std::unique_ptr<SudokuGame> currentSudoku;
 int currentLevel = 1; 
 int main() {
     sf::RenderWindow window(sf::VideoMode({800, 600}), "Sudoku Login");
-    
+
+    // Load background
+    sf::Texture backgroundTexture;
+    if (!backgroundTexture.loadFromFile("C:\\Users\\LOQ\\cpp\\SuDOKu_CPP\\Src\\background.jpg")) {
+        return -1;  // Handle error
+    }
+    sf::Sprite backgroundSprite(backgroundTexture);
+
+    // Scale and center background to cover window
+    sf::Vector2u windowSize = window.getSize();
+    sf::Vector2u textureSize = backgroundTexture.getSize();
+    float scaleX = float(windowSize.x) / textureSize.x;
+    float scaleY = float(windowSize.y) / textureSize.y;
+    float scale = std::max(scaleX, scaleY);
+    backgroundSprite.setScale(sf::Vector2f(scale, scale));
+    backgroundSprite.setPosition(sf::Vector2f(
+        (windowSize.x - textureSize.x * scale) / 2.f,
+        (windowSize.y - textureSize.y * scale) / 2.f
+    ));
+
     // Load font
     sf::Font font;
     if (!font.openFromFile("assets/fonts/arial.ttf")) {
@@ -29,70 +48,105 @@ int main() {
     // Title text
     sf::Text titleText(font);
     titleText.setString("Sudoku Game - Login");
-    titleText.setCharacterSize(32);
-    titleText.setPosition({250, 50});
-    titleText.setFillColor(sf::Color::Black);
+    titleText.setCharacterSize(54); // Larger size for emphasis
+    titleText.setFillColor(sf::Color(255, 255, 255));
+    titleText.setOutlineColor(sf::Color(60, 30, 0));
+    titleText.setOutlineThickness(5); // Thicker outline
+    titleText.setStyle(sf::Text::Bold | sf::Text::Underlined);
 
-    //Title after succesfully login
+    // Center the title horizontally (SFML 3 uses position/size)
+    sf::FloatRect titleBounds = titleText.getLocalBounds();
+    titleText.setOrigin(sf::Vector2f(
+        titleBounds.position.x + titleBounds.size.x / 2.0f,
+        titleBounds.position.y
+    ));
+    titleText.setPosition(sf::Vector2f(windowSize.x / 2.0f, 40.f));
 
-sf::Text gameTitleText(font);
-gameTitleText.setString("SuDoKu");
-gameTitleText.setCharacterSize(48);  // Larger size for main title
-gameTitleText.setPosition({320, 50});
-gameTitleText.setFillColor(sf::Color::Black);
-gameTitleText.setStyle(sf::Text::Bold);
+    // Optional: Add a shadow for the title
+    sf::Text titleShadow = titleText;
+    titleShadow.setFillColor(sf::Color(0, 0, 0, 120)); // semi-transparent black
+    titleShadow.setOutlineThickness(0);
+    titleShadow.move(sf::Vector2f(3.f, 3.f)); // offset for shadow
+
+    // Title after successfully login
+    sf::Text gameTitleText(font);
+    gameTitleText.setString("SuDoKu");
+    gameTitleText.setCharacterSize(56);
+    gameTitleText.setFillColor(sf::Color(255, 255, 255));
+    gameTitleText.setOutlineColor(sf::Color(60, 30, 0));
+    gameTitleText.setOutlineThickness(4);
+    gameTitleText.setStyle(sf::Text::Bold | sf::Text::Underlined);
+    gameTitleText.setPosition({windowSize.x / 2.f - 120, 40});
 
     // Menu options
     sf::Text newUserOption(font);
-    newUserOption.setString("1. New User");
-    newUserOption.setCharacterSize(24);
-    newUserOption.setPosition({300, 150});
-    newUserOption.setFillColor(sf::Color::Blue);
-
-sf::Text timerText(font);
-timerText.setCharacterSize(24);
-timerText.setPosition({600, 20}); // top-right corner
-timerText.setFillColor(sf::Color::Red);
-
+    newUserOption.setString("New User");
+    newUserOption.setCharacterSize(32);
+    newUserOption.setFillColor(sf::Color(40, 40, 60)); // Darker text
+    newUserOption.setOutlineColor(sf::Color(255, 255, 255, 180)); // Light outline
+    newUserOption.setOutlineThickness(2);
+    newUserOption.setStyle(sf::Text::Bold);
+    newUserOption.setPosition({windowSize.x / 2.f - 100, 150});
 
     sf::Text existingUserOption(font);
-    existingUserOption.setString("2. Existing User");
-    existingUserOption.setCharacterSize(24);
-    existingUserOption.setPosition({300, 200});
-    existingUserOption.setFillColor(sf::Color::Blue);
+    existingUserOption.setString("Existing User");
+    existingUserOption.setCharacterSize(32);
+    existingUserOption.setFillColor(sf::Color(40, 40, 60)); // Darker text
+    existingUserOption.setOutlineColor(sf::Color(255, 255, 255, 180)); // Light outline
+    existingUserOption.setOutlineThickness(2);
+    existingUserOption.setStyle(sf::Text::Bold);
+    existingUserOption.setPosition({windowSize.x / 2.f - 100, 200});
 
     sf::Text menuPrompt(font);
     menuPrompt.setString("Press 1 or 2 to select:");
-    menuPrompt.setCharacterSize(20);
-    menuPrompt.setPosition({280, 250});
-    menuPrompt.setFillColor(sf::Color::Black);
+    menuPrompt.setCharacterSize(22);
+    menuPrompt.setFillColor(sf::Color(255, 255, 180));
+    menuPrompt.setOutlineColor(sf::Color(60, 30, 0));
+    menuPrompt.setOutlineThickness(2);
+    menuPrompt.setPosition({windowSize.x / 2.f - 120, 250});
 
     // Input prompt
     sf::Text inputPrompt(font);
-    inputPrompt.setCharacterSize(24);
+    inputPrompt.setCharacterSize(26);
+    inputPrompt.setFillColor(sf::Color(255, 255, 255));
+    inputPrompt.setOutlineColor(sf::Color(60, 30, 0));
+    inputPrompt.setOutlineThickness(2);
     inputPrompt.setPosition({100, 300});
-    inputPrompt.setFillColor(sf::Color::Black);
 
     // Input display
     sf::Text inputDisplay(font);
     inputDisplay.setString("");
-    inputDisplay.setCharacterSize(24);
+    inputDisplay.setCharacterSize(26);
+    inputDisplay.setFillColor(sf::Color(255, 255, 180));
+    inputDisplay.setOutlineColor(sf::Color(60, 30, 0));
+    inputDisplay.setOutlineThickness(2);
     inputDisplay.setPosition({100, 350});
-    inputDisplay.setFillColor(sf::Color::Blue);
 
     // Status message
     sf::Text statusMessage(font);
     statusMessage.setString("");
-    statusMessage.setCharacterSize(20);
+    statusMessage.setCharacterSize(22);
+    statusMessage.setFillColor(sf::Color(0, 255, 0));
+    statusMessage.setOutlineColor(sf::Color(60, 30, 0));
+    statusMessage.setOutlineThickness(2);
     statusMessage.setPosition({100, 450});
-    statusMessage.setFillColor(sf::Color::Green);
 
     // Instructions
     sf::Text instructions(font);
     instructions.setString("Press ESC to go back | Enter to confirm");
-    instructions.setCharacterSize(16);
-    instructions.setPosition({200, 550});
-    instructions.setFillColor(sf::Color::Yellow);
+    instructions.setCharacterSize(18);
+    instructions.setFillColor(sf::Color(255, 255, 180));
+    instructions.setOutlineColor(sf::Color(60, 30, 0));
+    instructions.setOutlineThickness(2);
+    instructions.setPosition({windowSize.x / 2.f - 180, 550});
+
+    // Timer text
+    sf::Text timerText(font);
+    timerText.setCharacterSize(26);
+    timerText.setFillColor(sf::Color(255, 80, 80));
+    timerText.setOutlineColor(sf::Color(60, 30, 0));
+    timerText.setOutlineThickness(2);
+    timerText.setPosition(sf::Vector2f(static_cast<float>(windowSize.x) - 180.f, 20.f));
 
     // Game state variables
     LoginState currentState = LoginState::MENU;
@@ -142,25 +196,6 @@ timerText.setFillColor(sf::Color::Red);
         showInstructions = true;
     }
 }
-
-                
-                // Menu selection (only when in menu state)
-                else if (currentState == LoginState::MENU) {
-                    if (keyPressed->scancode == sf::Keyboard::Scancode::Num1) {
-                        currentState = LoginState::NEW_USER_NAME;
-                        inputPrompt.setString("Enter your name:");
-                        userInput = "";
-                        statusMessage.setString("");
-                        showInstructions = true;
-                    }
-                    else if (keyPressed->scancode == sf::Keyboard::Scancode::Num2) {
-                        currentState = LoginState::EXISTING_USER_ID;
-                        inputPrompt.setString("Enter your name:");
-                        userInput = "";
-                        statusMessage.setString("");
-                        showInstructions = true;
-                    }
-                }
             }
             
             else if (const auto* textEntered = event->getIf<sf::Event::TextEntered>()) {
@@ -211,7 +246,27 @@ timerText.setFillColor(sf::Color::Red);
             else if (currentState == LoginState::LOGGED_IN && gameMenu) {
              gameMenu->handleEvent(*event, window);
         }
-        if(const auto* mousePressed = event->getIf<sf::Event::MouseButtonPressed>()) {
+        if (currentState == LoginState::MENU) {
+    if (const auto* mousePressed = event->getIf<sf::Event::MouseButtonPressed>()) {
+        if (mousePressed->button == sf::Mouse::Button::Left) {
+            sf::Vector2f mousePos = window.mapPixelToCoords({mousePressed->position.x, mousePressed->position.y});
+            if (newUserOption.getGlobalBounds().contains(mousePos)) {
+                currentState = LoginState::NEW_USER_NAME;
+                inputPrompt.setString("Enter your name:");
+                userInput = "";
+                statusMessage.setString("");
+                showInstructions = true;
+            } else if (existingUserOption.getGlobalBounds().contains(mousePos)) {
+                currentState = LoginState::EXISTING_USER_ID;
+                inputPrompt.setString("Enter your name:");
+                userInput = "";
+                statusMessage.setString("");
+                showInstructions = true;
+            }
+        }
+    }
+}
+                 if(const auto* mousePressed = event->getIf<sf::Event::MouseButtonPressed>()) {
                      if(mousePressed->button == sf::Mouse::Button::Left && currentState == LoginState::PLAYING_SUDOKU){
                         sf::Vector2f mousePos = window.mapPixelToCoords({mousePressed->position.x, mousePressed->position.y});
                         currentSudoku->handleMouseClick(mousePos);
@@ -275,87 +330,135 @@ timerText.setFillColor(sf::Color::Red);
     }
         // Clear and draw
         window.clear(sf::Color::White);
-        
-        // Only draw Title if Not in logged in state
-        if (currentState != LoginState::LOGGED_IN) {
-    window.draw(titleText);
-}
 
-//IF successfuly login
-        if (currentState == LoginState::LOGGED_IN) {
-    window.draw(gameTitleText);
+        // Draw the background image
+        window.draw(backgroundSprite);
+
+        // Only draw Title on menu and login screens
+        if (currentState == LoginState::MENU ||
+            currentState == LoginState::NEW_USER_NAME ||
+            currentState == LoginState::EXISTING_USER_ID) {
+            window.draw(titleShadow); // Draw shadow first
+            window.draw(titleText);   // Then draw main title
         }
-        // Clear window
-window.clear(sf::Color::White);
+
+        // IF successfully login
+        if (currentState == LoginState::LOGGED_IN) {
+            window.draw(gameTitleText);
+        }
+
         // Draw based on current state
         switch (currentState) {
-            case LoginState::MENU:
-                window.draw(newUserOption);
-                window.draw(existingUserOption);
-                window.draw(menuPrompt);
-                break;
-                
-            case LoginState::NEW_USER_NAME:
-            case LoginState::EXISTING_USER_ID:
-                window.draw(inputPrompt);
-                window.draw(inputDisplay);
-                window.draw(statusMessage);
-                if (showInstructions) {
-                    window.draw(instructions);
-                }
-                break;
-                
-            case LoginState::LOGGED_IN:
-                // Initialize menu once
-                if (!menuInitialized) {
-                     gameMenu = std::make_unique<Menu>(font);
-                    gameMenu->setPosition(300, 200);
-                    gameMenu->addButton("Play Sudoku", [&](){
-                    LevelSelection levelSelection(font, user.getUnlockedLevel());
-                    if(levelSelection.run(window)) {
-                        currentLevel = levelSelection.getSelectedLevel();
-                            // Create Sudoku game based on difficulty
-                         // For simplicity: level 1-2 = Easy, 3-4 = Medium, 5-6 = Hard, 7-8 = Very Hard
+            case LoginState::MENU: {
+    // Draw menu box
+    float boxWidth = 350.f;
+    float boxHeight = 180.f;
+    float boxX = windowSize.x / 2.f - boxWidth / 2.f;
+    float boxY = windowSize.y / 2.f - boxHeight / 2.f;
+
+    sf::RectangleShape menuBox(sf::Vector2f(boxWidth, boxHeight));
+    menuBox.setPosition(sf::Vector2f(boxX, boxY));
+    menuBox.setFillColor(sf::Color(255, 255, 255, 220)); // semi-transparent white
+    menuBox.setOutlineColor(sf::Color(60, 30, 0));
+    menuBox.setOutlineThickness(4.f);
+
+    window.draw(menuBox);
+
+    // Center the options inside the box
+    sf::FloatRect newUserBounds = newUserOption.getLocalBounds();
+    sf::FloatRect existingUserBounds = existingUserOption.getLocalBounds();
+
+    newUserOption.setPosition(sf::Vector2f(
+        boxX + boxWidth / 2.f - newUserBounds.size.x / 2.f,
+        boxY + 40.f
+    ));
+    existingUserOption.setPosition(sf::Vector2f(
+        boxX + boxWidth / 2.f - existingUserBounds.size.x / 2.f,
+        boxY + 100.f
+    ));
+
+    // Mouse hover effects (keep this logic)
+    sf::Vector2i mousePixel = sf::Mouse::getPosition(window);
+    sf::Vector2f mousePos = window.mapPixelToCoords(mousePixel);
+
+    if (newUserOption.getGlobalBounds().contains(mousePos)) {
+        newUserOption.setFillColor(sf::Color(255, 140, 0)); // Vibrant orange
+        newUserOption.setOutlineColor(sf::Color(60, 30, 0));
+    } else {
+        newUserOption.setFillColor(sf::Color(40, 40, 60)); // Darker text
+        newUserOption.setOutlineColor(sf::Color(255, 255, 255, 180));
+    }
+    if (existingUserOption.getGlobalBounds().contains(mousePos)) {
+        existingUserOption.setFillColor(sf::Color(255, 140, 0));
+        existingUserOption.setOutlineColor(sf::Color(60, 30, 0));
+    } else {
+        existingUserOption.setFillColor(sf::Color(40, 40, 60));
+        existingUserOption.setOutlineColor(sf::Color(255, 255, 255, 180));
+    }
+
+    window.draw(newUserOption);
+    window.draw(existingUserOption);
+    break;
+}
+    case LoginState::NEW_USER_NAME:
+    case LoginState::EXISTING_USER_ID: {
+        window.draw(inputPrompt);
+        window.draw(inputDisplay);
+        window.draw(statusMessage);
+        if (showInstructions) {
+            window.draw(instructions);
+        }
+        break;
+    }
+    case LoginState::LOGGED_IN: {
+        // Initialize menu once
+        if (!menuInitialized) {
+            gameMenu = std::make_unique<Menu>(font);
+            gameMenu->setPosition(windowSize.x / 2.f - 100, 200);
+            gameMenu->addButton("Play Sudoku", [&](){
+                LevelSelection levelSelection(font, user.getUnlockedLevel());
+                if(levelSelection.run(window)) {
+                    currentLevel = levelSelection.getSelectedLevel();
                     int difficulty = 1;
                     if(currentLevel >= 3 && currentLevel <= 4) difficulty = 2;
                     else if(currentLevel >= 5 && currentLevel <= 6) difficulty = 3;
                     else if(currentLevel >= 7) difficulty = 4;
                     currentSudoku = std::make_unique<SudokuGame>(font, difficulty, user.getDiamonds());
                     currentState = LoginState::PLAYING_SUDOKU;
-                    }
-                    });
-                     gameMenu->addButton("View Ranking", []{});
-                     gameMenu->addButton("Exit", [&]{ 
-                        currentState = LoginState::MENU;
-                        userInput = "";
-                        inputDisplay.setString("");
-                        statusMessage.setString("");
-                        showInstructions = true;
-                        menuInitialized = false;
-                      });
-                    menuInitialized = true;
-             }
+                }
+            });
+            gameMenu->addButton("View Ranking", []{});
+            gameMenu->addButton("Exit", [&]{ 
+                currentState = LoginState::MENU;
+                userInput = "";
+                inputDisplay.setString("");
+                statusMessage.setString("");
+                showInstructions = true;
+                menuInitialized = false;
+            });
+            menuInitialized = true;
+        }
 
-    // Draw menu (replaces the success text)
-    gameMenu->draw(window);
-    window.draw(statusMessage); // Keep your existing status message
-    break;
-
-    case LoginState::PLAYING_SUDOKU:
-      if (currentSudoku) {
-        currentSudoku->draw(window);
-
-        // Display remaining time
-        int remainingTime = currentSudoku->getRemainingTime(); // in seconds
-        int minutes = remainingTime / 60;
-        int seconds = remainingTime % 60;
-        timerText.setString("Time: " + std::to_string(minutes) + ":" + (seconds < 10 ? "0" : "") + std::to_string(seconds));
-
-        window.draw(timerText); // draw it on top
-    }
-     
+        // Draw menu (replaces the success text)
+        gameMenu->draw(window);
+        window.draw(statusMessage); // Keep your existing status message
         break;
     }
+    case LoginState::PLAYING_SUDOKU: {
+        if (currentSudoku) {
+            currentSudoku->draw(window);
+
+            // Display remaining time
+            int remainingTime = currentSudoku->getRemainingTime(); // in seconds
+            int minutes = remainingTime / 60;
+            int seconds = remainingTime % 60;
+            timerText.setString("Time: " + std::to_string(minutes) + ":" + (seconds < 10 ? "0" : "") + std::to_string(seconds));
+
+            window.draw(timerText); // draw it on top
+        }
+        break;
+    }
+}
         
         window.display();
     }
