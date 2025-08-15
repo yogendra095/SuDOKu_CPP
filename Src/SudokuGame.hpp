@@ -34,4 +34,5 @@ public:
     bool isCompleted() const;
     int getRemainingTime() const; // in seconds
     int getDiamonds() const { return diamonds; }
+    void clearSelection();
 };

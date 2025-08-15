@@ -137,9 +137,7 @@ void SudokuGame::draw(sf::RenderWindow& window) {
 void SudokuGame::handleMouseClick(sf::Vector2f mousePos){
     const float cellSize = 50.f;
     const float boardSize = cellSize * 9;
-
-    // Calculate top-left position of the centered board
-    sf::Vector2f startPos((800 - boardSize) / 2.f, (600 - boardSize) / 2.f); // assuming 800x600 window
+    sf::Vector2f startPos((800 - boardSize) / 2.f, (600 - boardSize) / 2.f);
 
     int col = (mousePos.x - startPos.x) / cellSize;
     int row = (mousePos.y - startPos.y) / cellSize;
@@ -147,6 +145,8 @@ void SudokuGame::handleMouseClick(sf::Vector2f mousePos){
     if(row >= 0 && row < 9 && col >= 0 && col < 9 && !fixedCells[row][col]){
         selectedRow = row;
         selectedCol = col;
+    } else {
+        clearSelection(); // Deselect if clicked outside grid or on fixed cell
     }
 }
 
@@ -229,4 +229,9 @@ int SudokuGame::getRemainingTime() const {
     int elapsed = static_cast<int>(gameClock.getElapsedTime().asSeconds());
     int remaining = timeLimitMinutes * 60 - elapsed;
     return remaining > 0 ? remaining : 0;
+}
+
+void SudokuGame::clearSelection() {
+    selectedRow = -1;
+    selectedCol = -1;
 }
