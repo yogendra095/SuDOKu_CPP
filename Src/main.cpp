@@ -46,11 +46,11 @@ std::vector<RankingEntry> getRankings() {
 }
 
 int main() {
-    sf::RenderWindow window(sf::VideoMode({800, 600}), "Sudoku Login");
+    sf::RenderWindow window(sf::VideoMode({800u, 600u}), "Sudoku Login", sf::Style::Default | sf::Style::Resize);
 
     // Load background
     sf::Texture backgroundTexture;
-    if (!backgroundTexture.loadFromFile("background.jpg")) {
+    if (!backgroundTexture.loadFromFile("C:\\Users\\LOQ\\cpp\\SuDOKu_CPP\\Src\\background.jpeg")) {
         return -1;  // Handle error
     }
     sf::Sprite backgroundSprite(backgroundTexture);
@@ -204,11 +204,26 @@ int main() {
 
     while (window.isOpen()) {
         while (auto event = window.pollEvent()) {
-            // Window close
             if (event->is<sf::Event::Closed>()) {
                 window.close();
             }
+            // Handle window resize
+            else if (const auto* resize = event->getIf<sf::Event::Resized>()) {
+                windowSize = {resize->size.x, resize->size.y};
 
+                // Rescale and reposition background
+                float scaleX = float(windowSize.x) / textureSize.x;
+                float scaleY = float(windowSize.y) / textureSize.y;
+                float scale = std::max(scaleX, scaleY);
+                backgroundSprite.setScale(sf::Vector2f(scale, scale));
+                backgroundSprite.setPosition(sf::Vector2f(
+                    (windowSize.x - textureSize.x * scale) / 2.f,
+                    (windowSize.y - textureSize.y * scale) / 2.f
+                ));
+
+                // Optionally, update view to match new size
+                window.setView(sf::View(sf::FloatRect({0.f, 0.f}, sf::Vector2f(windowSize.x, windowSize.y))));
+            }
             // ESC key handling
             else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
                 if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
@@ -608,40 +623,55 @@ int main() {
         header.setPosition(sf::Vector2f(windowSize.x / 2.f - 180.f, 100.f));
         window.draw(header);
 
+        // Find the X position for the "Score" column
+        sf::FloatRect headerBounds = header.getGlobalBounds();
+        float scoreColX = header.getPosition().x + header.findCharacterPos(32).x - header.getPosition().x;
+
         // Rankings
         auto rankings = getRankings();
-        sf::Text entry(font);
-        entry.setCharacterSize(24);
-        float y = 140.f;
-        int rank = 1;
-        for (const auto& r : rankings) {
-            // Alternate row color for readability
-            if (rank % 2 == 0)
-                entry.setFillColor(sf::Color(240, 240, 255));
-            else
-                entry.setFillColor(sf::Color(255, 255, 255));
-            entry.setOutlineColor(sf::Color(60, 30, 0));
-            entry.setOutlineThickness(1);
-            entry.setStyle(sf::Text::Regular);
+        sf::Text rankText(font), nameText(font), scoreText(font);
+rankText.setCharacterSize(24);
+nameText.setCharacterSize(24);
+scoreText.setCharacterSize(24);
 
-            // Username bold, score right-aligned
-            std::string rankStr = std::to_string(rank);
-            std::string userStr = r.username;
-            std::string scoreStr = std::to_string(r.score);
+float y = 140.f;
+int rank = 1;
+for (const auto& r : rankings) {
+    // Alternate row color for readability
+    sf::Color rowColor = (rank % 2 == 0) ? sf::Color(240, 240, 255) : sf::Color(255, 255, 255);
 
-            // Format: Rank (left), Username (center), Score (right)
-            std::string line = rankStr;
-            line += std::string(10 - rankStr.length(), ' ');
-            line += userStr;
-            line += std::string(22 - userStr.length(), ' ');
-            line += scoreStr;
+    // Rank
+    rankText.setString(std::to_string(rank));
+    rankText.setFillColor(rowColor);
+    rankText.setOutlineColor(sf::Color(60, 30, 0));
+    rankText.setOutlineThickness(1);
+    rankText.setStyle(sf::Text::Regular);
+    rankText.setPosition(sf::Vector2f(windowSize.x / 2.f - 170.f, y));
 
-            entry.setString(line);
-            entry.setPosition(sf::Vector2f(windowSize.x / 2.f - 180.f, y));
-            window.draw(entry);
-            y += 34.f;
-            if (++rank > 10) break; // Show top 10
-        }
+    // Username
+    nameText.setString(r.username);
+    nameText.setFillColor(rowColor);
+    nameText.setOutlineColor(sf::Color(60, 30, 0));
+    nameText.setOutlineThickness(1);
+    nameText.setStyle(sf::Text::Bold);
+    nameText.setPosition(sf::Vector2f(windowSize.x / 2.f - 70.f, y));
+
+    // Score (right-aligned)
+    scoreText.setString(std::to_string(r.score));
+    scoreText.setFillColor(rowColor);
+    scoreText.setOutlineColor(sf::Color(60, 30, 0));
+    scoreText.setOutlineThickness(1);
+    scoreText.setStyle(sf::Text::Regular);
+    sf::FloatRect scoreBounds = scoreText.getLocalBounds();
+    scoreText.setPosition(sf::Vector2f(windowSize.x / 2.f + 120.f - scoreBounds.size.x, y));
+
+    window.draw(rankText);
+    window.draw(nameText);
+    window.draw(scoreText);
+
+    y += 34.f;
+    if (++rank > 10) break; // Show top 10
+}
 
         // Back instruction
         sf::Text backText(font);
