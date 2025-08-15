@@ -50,7 +50,7 @@ int main() {
 
     // Load background
     sf::Texture backgroundTexture;
-    if (!backgroundTexture.loadFromFile("C:\\Users\\LOQ\\cpp\\SuDOKu_CPP\\Src\\background.jpeg")) {
+    if (!backgroundTexture.loadFromFile("background.jpeg")) {
         return -1;  // Handle error
     }
     sf::Sprite backgroundSprite(backgroundTexture);
@@ -590,97 +590,111 @@ int main() {
         break;
     }
     case LoginState::VIEW_RANKING: {
-        // Draw background
+        // Draw background (use your wood texture if available)
         window.draw(backgroundSprite);
 
-        // Title with shadow
+        // Title with wood-style box
+        sf::RectangleShape titleBox(sf::Vector2f(400.f, 60.f));
+        titleBox.setFillColor(sf::Color(181, 140, 90));
+        titleBox.setOutlineColor(sf::Color(120, 80, 40));
+        titleBox.setOutlineThickness(4.f);
+        titleBox.setPosition({windowSize.x / 2.f - 200.f, 30.f});
+        window.draw(titleBox);
+
         sf::Text rankingTitle(font);
-        rankingTitle.setString("Leaderboard");
-        rankingTitle.setCharacterSize(48);
-        rankingTitle.setFillColor(sf::Color(255, 255, 255));
-        rankingTitle.setOutlineColor(sf::Color(60, 30, 0));
-        rankingTitle.setOutlineThickness(4);
-        rankingTitle.setStyle(sf::Text::Bold | sf::Text::Underlined);
+        rankingTitle.setString("LEADERBOARD");
+        rankingTitle.setCharacterSize(36);
+        rankingTitle.setFillColor(sf::Color(60, 30, 0));
+        rankingTitle.setStyle(sf::Text::Bold);
         sf::FloatRect titleBounds = rankingTitle.getLocalBounds();
-        rankingTitle.setOrigin(sf::Vector2f(titleBounds.size.x / 2.f, 0.f));
-        rankingTitle.setPosition(sf::Vector2f(windowSize.x / 2.f, 32.f));
-        // Shadow
-        sf::Text rankingShadow = rankingTitle;
-        rankingShadow.setFillColor(sf::Color(0, 0, 0, 100));
-        rankingShadow.setOutlineThickness(0);
-        rankingShadow.move(sf::Vector2f(3.f, 3.f));
-        window.draw(rankingShadow);
+        rankingTitle.setOrigin({titleBounds.size.x / 2.f, titleBounds.size.y / 2.f});
+        rankingTitle.setPosition({windowSize.x / 2.f, 60.f});
         window.draw(rankingTitle);
-
-        // Column headers
-        sf::Text header(font);
-        header.setCharacterSize(28);
-        header.setFillColor(sf::Color(255, 215, 0)); // Gold
-        header.setOutlineColor(sf::Color(60, 30, 0));
-        header.setOutlineThickness(2);
-        header.setStyle(sf::Text::Bold);
-        header.setString("Rank      Username                Score");
-        header.setPosition(sf::Vector2f(windowSize.x / 2.f - 180.f, 100.f));
-        window.draw(header);
-
-        // Find the X position for the "Score" column
-        sf::FloatRect headerBounds = header.getGlobalBounds();
-        float scoreColX = header.getPosition().x + header.findCharacterPos(32).x - header.getPosition().x;
 
         // Rankings
         auto rankings = getRankings();
+        float entryBoxWidth = 600.f;
+        float entryBoxHeight = 48.f;
+        float startY = 120.f;
+        int rank = 1;
+
+        // Draw column headers above the entries
+        sf::Text header(font);
+        header.setCharacterSize(26);
+        header.setFillColor(sf::Color(120, 80, 40));
+        header.setStyle(sf::Text::Bold);
+        header.setPosition({windowSize.x / 2.f - 250.f, startY - 40.f});
+        window.draw(header);
+
+        // Calculate X positions for columns based on header
+        float rankColX = windowSize.x / 2.f - 250.f + 10.f;
+        float nameColX = windowSize.x / 2.f - 250.f + 90.f;
+        float scoreColX = windowSize.x / 2.f + 250.f - 80.f;
+
         sf::Text rankText(font), nameText(font), scoreText(font);
-rankText.setCharacterSize(24);
-nameText.setCharacterSize(24);
-scoreText.setCharacterSize(24);
+        rankText.setCharacterSize(24);
+        nameText.setCharacterSize(24);
+        scoreText.setCharacterSize(24);
 
-float y = 140.f;
-int rank = 1;
-for (const auto& r : rankings) {
-    // Alternate row color for readability
-    sf::Color rowColor = (rank % 2 == 0) ? sf::Color(240, 240, 255) : sf::Color(255, 255, 255);
+        for (const auto& r : rankings) {
+            float y = startY + (rank - 1) * (entryBoxHeight + 12.f);
 
-    // Rank
-    rankText.setString(std::to_string(rank));
-    rankText.setFillColor(rowColor);
-    rankText.setOutlineColor(sf::Color(60, 30, 0));
-    rankText.setOutlineThickness(1);
-    rankText.setStyle(sf::Text::Regular);
-    rankText.setPosition(sf::Vector2f(windowSize.x / 2.f - 170.f, y));
+            // Draw plank/box for entry
+            sf::RectangleShape entryBox(sf::Vector2f(entryBoxWidth, entryBoxHeight));
+            entryBox.setPosition({windowSize.x / 2.f - entryBoxWidth / 2.f, y});
+            entryBox.setFillColor(sf::Color(222, 184, 135, 230));
+            entryBox.setOutlineColor(sf::Color(120, 80, 40));
+            entryBox.setOutlineThickness(3.f);
+            window.draw(entryBox);
 
-    // Username
-    nameText.setString(r.username);
-    nameText.setFillColor(rowColor);
-    nameText.setOutlineColor(sf::Color(60, 30, 0));
-    nameText.setOutlineThickness(1);
-    nameText.setStyle(sf::Text::Bold);
-    nameText.setPosition(sf::Vector2f(windowSize.x / 2.f - 70.f, y));
+            // Draw rank icon/circle
+            sf::CircleShape rankCircle(18.f);
+            rankCircle.setPosition({rankColX - 30.f, y + 6.f});
+            if (rank == 1)
+                rankCircle.setFillColor(sf::Color(255, 215, 0)); // Gold
+            else if (rank == 2)
+                rankCircle.setFillColor(sf::Color(192, 192, 192)); // Silver
+            else if (rank == 3)
+                rankCircle.setFillColor(sf::Color(205, 127, 50)); // Bronze
+            else
+                rankCircle.setFillColor(sf::Color(200, 200, 200));
+            window.draw(rankCircle);
 
-    // Score (right-aligned)
-    scoreText.setString(std::to_string(r.score));
-    scoreText.setFillColor(rowColor);
-    scoreText.setOutlineColor(sf::Color(60, 30, 0));
-    scoreText.setOutlineThickness(1);
-    scoreText.setStyle(sf::Text::Regular);
-    sf::FloatRect scoreBounds = scoreText.getLocalBounds();
-    scoreText.setPosition(sf::Vector2f(windowSize.x / 2.f + 120.f - scoreBounds.size.x, y));
+            // Rank number (centered in circle)
+            rankText.setString(std::to_string(rank));
+            rankText.setFillColor(sf::Color(60, 30, 0));
+            rankText.setStyle(sf::Text::Bold);
+            sf::FloatRect rankBounds = rankText.getLocalBounds();
+            rankText.setOrigin({rankBounds.size.x / 2.f, rankBounds.size.y / 2.f});
+            rankText.setPosition({rankCircle.getPosition().x + 18.f, y + entryBoxHeight / 2.f + 2.f});
+            window.draw(rankText);
 
-    window.draw(rankText);
-    window.draw(nameText);
-    window.draw(scoreText);
+            // Username (left-aligned in its column)
+            nameText.setString(r.username);
+            nameText.setFillColor(sf::Color(60, 30, 0));
+            nameText.setStyle(sf::Text::Bold);
+            nameText.setOrigin(sf::Vector2f(0.f, 0.f));
+            nameText.setPosition(sf::Vector2f(nameColX, y + 10.f));
+            window.draw(nameText);
 
-    y += 34.f;
-    if (++rank > 10) break; // Show top 10
-}
+            // Score (right-aligned under "Score" heading)
+            scoreText.setString(std::to_string(r.score));
+            scoreText.setFillColor(sf::Color(60, 30, 0));
+            scoreText.setStyle(sf::Text::Bold);
+            sf::FloatRect scoreBounds = scoreText.getLocalBounds();
+            scoreText.setOrigin(sf::Vector2f(scoreBounds.size.x, 0)); // right align
+            scoreText.setPosition(sf::Vector2f(scoreColX, y + 10.f));
+            window.draw(scoreText);
+
+            if (++rank > 10) break; // Show top 10
+        }
 
         // Back instruction
         sf::Text backText(font);
         backText.setString("Press ESC to return");
         backText.setCharacterSize(20);
-        backText.setFillColor(sf::Color(255, 255, 180));
-        backText.setOutlineColor(sf::Color(60, 30, 0));
-        backText.setOutlineThickness(2);
-        backText.setPosition(sf::Vector2f(windowSize.x / 2.f - 90.f, y + 30.f));
+        backText.setFillColor(sf::Color(120, 80, 40));
+        backText.setPosition(sf::Vector2f(windowSize.x / 2.f - 90.f, startY + 10 * (entryBoxHeight + 12.f) + 20.f));
         window.draw(backText);
         break;
     }
