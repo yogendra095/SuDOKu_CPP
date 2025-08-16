@@ -244,6 +244,13 @@ int main() {
                             currentState = LoginState::LOGGED_IN;
                         }
                     }
+                        else if (currentState == LoginState::VIEW_RANKING) {
+                            currentState = LoginState::LOGGED_IN;
+                            userInput = "";
+                            inputDisplay.setString("");
+                            statusMessage.setString("");
+                            showInstructions = true;
+                        }
                     else if (currentState != LoginState::LOGGED_IN) {
                         currentState = LoginState::MENU;
                         userInput = "";
@@ -356,38 +363,82 @@ int main() {
             }
         }
         
+        static sf::Clock endMessageClock;
+        static std::string endMessage = "";
+        static bool showEndMessage = false;
+    static LoginState nextStateAfterMessage = LoginState::LOGGED_IN;
         if (currentState == LoginState::PLAYING_SUDOKU) {
             if (currentSudoku) {
                 if (currentSudoku->isCompleted()) {
-                    std::cout << "Level Completed!\n";
-                     int reward = currentLevel; //Diamond
-                     //For Score
-                    int baseScore = currentLevel * 100;
-                    int InitialValue = 50;
-                    int remainingTime = currentSudoku->getRemainingTime();
-                    int timeBonus = std::max(0, (remainingTime * baseScore) / InitialValue);
-                 int finalScore = baseScore + timeBonus;
-                  if (finalScore < 0) finalScore = 0;
+                    int reward = currentLevel; //Diamond
+                    // New scoring system
+                    int difficulty = 1;
+                    if(currentLevel >= 3 && currentLevel <= 4) difficulty = 2;
+                    else if(currentLevel >= 5 && currentLevel <= 6) difficulty = 3;
+                    else if(currentLevel >= 7) difficulty = 4;
+                    int baseScore = 100 * difficulty;
+                    int maxTime = 0;
+                    switch(difficulty) {
+                        case 1: maxTime = 20 * 60; break;
+                        case 2: maxTime = 30 * 60; break;
+                        case 3: maxTime = 40 * 60; break;
+                        case 4: maxTime = 50 * 60; break;
+                        default: maxTime = 5 * 60; break;
+                    }
+                    int timeTaken = maxTime - currentSudoku->getRemainingTime();
+                    int timeBonus = std::max(0, (maxTime - timeTaken) * 2);
+                    int mistakePenalty = currentSudoku->getMistakeCount() * 10;
+                    int finalScore = baseScore + timeBonus - mistakePenalty;
+                    if (finalScore < 0) finalScore = 0;
                     user.addDiamonds(reward);
-                     user.addScore(finalScore);
+                    user.addScore(finalScore);
                     if (currentLevel == user.getUnlockedLevel() && currentLevel < 8) {
                         user.setUnlockedLevel(currentLevel + 1);
                     }
                     user.save();
                     currentSudoku.reset();
-                    currentState = LoginState::LOGGED_IN;
-                } 
+                    endMessage = "Level Completed!";
+                    showEndMessage = true;
+                    endMessageClock.restart();
+                    nextStateAfterMessage = LoginState::LOGGED_IN; // Will trigger level selection below
+                    currentState = LoginState::PLAYING_SUDOKU; // Stay in this state to show message
+                }
                 else if (currentSudoku->getRemainingTime() <= 0) {
-                    std::cout << "Time over!\n";
-                        user.addDiamonds(currentSudoku->getDiamonds());
-                        user.save();
+                    user.addDiamonds(currentSudoku->getDiamonds());
+                    user.save();
                     currentSudoku.reset();
-                    currentState = LoginState::LOGGED_IN;
+                    endMessage = "Time Over!";
+                    showEndMessage = true;
+                    endMessageClock.restart();
+                    nextStateAfterMessage = LoginState::LOGGED_IN;
+                    currentState = LoginState::PLAYING_SUDOKU;
                 }
                 else if(currentSudoku->getDiamonds() == 0 && currentSudoku->gameOver){
-                std::cout << "Game Over due to zero diamonds!\n";
-                currentSudoku.reset();
-                currentState = LoginState::LOGGED_IN;
+                    currentSudoku.reset();
+                    endMessage = "Game Over! No Diamonds Left.";
+                    showEndMessage = true;
+                    endMessageClock.restart();
+                    nextStateAfterMessage = LoginState::LOGGED_IN;
+                    currentState = LoginState::PLAYING_SUDOKU;
+                }
+            }
+        }
+        // Show end message and after 2 seconds go to level selection
+        if (showEndMessage) {
+            if (endMessageClock.getElapsedTime().asSeconds() > 2.0f) {
+                showEndMessage = false;
+                // Instead of just LOGGED_IN, go to level selection
+                LevelSelection levelSelection(font, user.getUnlockedLevel());
+                if (levelSelection.run(window)) {
+                    currentLevel = levelSelection.getSelectedLevel();
+                    int difficulty = 1;
+                    if(currentLevel >= 3 && currentLevel <= 4) difficulty = 2;
+                    else if(currentLevel >= 5 && currentLevel <= 6) difficulty = 3;
+                    else if(currentLevel >= 7) difficulty = 4;
+                    currentSudoku = std::make_unique<SudokuGame>(font, difficulty, user.getDiamonds());
+                    currentState = LoginState::PLAYING_SUDOKU;
+                } else {
+                    currentState = LoginState::LOGGED_IN;
                 }
             }
         }
@@ -586,6 +637,20 @@ int main() {
             window.draw(diamondsText);
             window.draw(scoreText);
             window.draw(timerText); // draw it on top
+        }
+        // Draw end message overlay if needed
+        if (showEndMessage) {
+            sf::RectangleShape overlay(sf::Vector2f(windowSize.x, windowSize.y));
+            overlay.setFillColor(sf::Color(0,0,0,120));
+            window.draw(overlay);
+            sf::Text msgText(font, endMessage, 48);
+            msgText.setFillColor(sf::Color(255, 215, 0));
+            msgText.setOutlineColor(sf::Color(60, 30, 0));
+            msgText.setOutlineThickness(4);
+            sf::FloatRect msgBounds = msgText.getLocalBounds();
+            msgText.setOrigin({msgBounds.size.x/2.f, msgBounds.size.y/2.f});
+            msgText.setPosition({windowSize.x/2.f, windowSize.y/2.f});
+            window.draw(msgText);
         }
         break;
     }

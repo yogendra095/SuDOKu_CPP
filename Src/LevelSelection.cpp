@@ -35,29 +35,33 @@ LevelSelection::LevelSelection(sf::Font& font, int unlockedLevel)
 bool LevelSelection::run(sf::RenderWindow& window) {
     selectedLevel = 0;
 
-   while (window.isOpen() && selectedLevel == 0) {
-    while (const std::optional event = window.pollEvent()) {
-        if (event->is<sf::Event::Closed>()) {
-            return false;
-        } else if (const auto* mouseButtonPressed = event->getIf<sf::Event::MouseButtonPressed>()) {
-            if (mouseButtonPressed->button == sf::Mouse::Button::Left) {
-                sf::Vector2f mousePos = window.mapPixelToCoords({mouseButtonPressed->position.x, mouseButtonPressed->position.y});
-                for (auto& btn : buttons) {
-                    if (!btn.locked && btn.rect.getGlobalBounds().contains(mousePos)) {
-                        btn.onClick();
+    while (window.isOpen() && selectedLevel == 0) {
+        while (const std::optional event = window.pollEvent()) {
+            if (event->is<sf::Event::Closed>()) {
+                return false;
+            } else if (const auto* keyPressed = event->getIf<sf::Event::KeyPressed>()) {
+                if (keyPressed->scancode == sf::Keyboard::Scancode::Escape) {
+                    return false;
+                }
+            } else if (const auto* mouseButtonPressed = event->getIf<sf::Event::MouseButtonPressed>()) {
+                if (mouseButtonPressed->button == sf::Mouse::Button::Left) {
+                    sf::Vector2f mousePos = window.mapPixelToCoords({mouseButtonPressed->position.x, mouseButtonPressed->position.y});
+                    for (auto& btn : buttons) {
+                        if (!btn.locked && btn.rect.getGlobalBounds().contains(mousePos)) {
+                            btn.onClick();
+                        }
                     }
                 }
             }
         }
-    }
 
-    window.clear(sf::Color::White);
-    for (auto& btn : buttons) {
-        window.draw(btn.rect);
-        window.draw(btn.text);
+        window.clear(sf::Color::White);
+        for (auto& btn : buttons) {
+            window.draw(btn.rect);
+            window.draw(btn.text);
+        }
+        window.display();
     }
-    window.display();
-}
 
     return selectedLevel != 0;
 }

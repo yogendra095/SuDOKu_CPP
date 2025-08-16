@@ -47,7 +47,7 @@ namespace {
 
 // Constructor
 SudokuGame::SudokuGame(sf::Font& font, int difficulty, int diamonds)
-    : font(font), diamonds(diamonds)
+    : font(font), diamonds(diamonds), mistakeCount(0)
 {
     // Set time limit based on difficulty (in minutes)
     switch(difficulty) {
@@ -161,6 +161,7 @@ void SudokuGame::handleKeyboardInput(int number, User& user){
         cellColors[selectedRow][selectedCol] = sf::Color::Black;  // correct number
     } else {
         cellColors[selectedRow][selectedCol] = sf::Color::Red;    // wrong number
+        mistakeCount++;
         if(diamonds>0)
         {
              diamonds--;    
@@ -173,8 +174,11 @@ void SudokuGame::handleKeyboardInput(int number, User& user){
         {
             gameOver=true;
         }
-        
     }
+}
+// Get number of mistakes
+int SudokuGame::getMistakeCount() const {
+    return mistakeCount;
 }
 
 void SudokuGame::handleArrowKeys(sf::Keyboard::Key key) {

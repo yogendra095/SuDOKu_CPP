@@ -12,6 +12,7 @@ private:
     std::array<std::array<int,9>,9> solution{};
     std::array<std::array<bool,9>,9> fixedCells{};
     std::array<std::array<sf::Color,9>,9> cellColors{};
+    int mistakeCount;
 
     int selectedRow = -1;
     int selectedCol = -1;
@@ -34,5 +35,6 @@ public:
     bool isCompleted() const;
     int getRemainingTime() const; // in seconds
     int getDiamonds() const { return diamonds; }
+        int getMistakeCount() const;
     void clearSelection();
 };
