@@ -10,27 +10,27 @@ struct LevelButton {
     bool locked = true;
     std::function<void()> onClick = [](){};
 
-    // Constructor
+    // Make button
     LevelButton(const sf::Vector2f& size, const sf::Vector2f& pos, 
                 const std::string& label, sf::Font& font, bool isLocked = true)
         : text(font), locked(isLocked)
     {
-        // Set up rectangle
+    // Rectangle
         rect.setSize(size);
         rect.setPosition(pos);
         rect.setFillColor(isLocked ? sf::Color(100,100,100) : sf::Color(70,130,180));
         rect.setOutlineThickness(3.f);
         rect.setOutlineColor(sf::Color::White);
 
-        // Set up text
+    // Button text
         text.setString(label);
         text.setCharacterSize(24);
         
-        // Center the text
+    // Center text
         auto bounds = text.getLocalBounds();
         text.setOrigin({bounds.position.x + bounds.size.x/2.f, bounds.position.y + bounds.size.y/2.f});
         
-        // Position text at center of rectangle
+    // Put text in middle
         text.setPosition(sf::Vector2f(pos.x + size.x/2.f, pos.y + size.y/2.f));
     }
 };

@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <iostream>
 
-// Utility functions for generating Sudoku
+// Helper functions for Sudoku
 namespace {
     bool isSafe(const std::array<std::array<int,9>,9>& board, int row, int col, int num) {
         for(int x=0;x<9;x++)
@@ -45,29 +45,29 @@ namespace {
     }
 }
 
-// Constructor
+// Make a new Sudoku game
 SudokuGame::SudokuGame(sf::Font& font, int difficulty, int diamonds)
     : font(font), diamonds(diamonds), mistakeCount(0)
 {
-    // Set time limit based on difficulty (in minutes)
+    // Set time limit
     switch(difficulty) {
-        case 1: timeLimitMinutes = 20; break;   // Easy
-        case 2: timeLimitMinutes = 30; break;   // Medium
-        case 3: timeLimitMinutes = 40; break;  // Hard
-        case 4: timeLimitMinutes = 50; break;  // Very Hard
+    case 1: timeLimitMinutes = 20; break;   // Easy
+    case 2: timeLimitMinutes = 30; break;   // Medium
+    case 3: timeLimitMinutes = 40; break;  // Hard
+    case 4: timeLimitMinutes = 50; break;  // Very Hard
         default: timeLimitMinutes = 5; break;
     }
 
     gameClock.restart();
-    generateBoard(difficulty); // generate your puzzle and solution
+    generateBoard(difficulty); // Make puzzle and solution
 }
 
-// Generate board
+// Make the puzzle board
 void SudokuGame::generateBoard(int difficulty) {
     fillBoard(solution);
     puzzle = solution;
 
-    int emptyCells = 30 + (difficulty-1)*5; // Easy=30, Medium=35, Hard=40, etc
+    int emptyCells = 30 + (difficulty-1)*5; // More empty for harder
     makePuzzle(puzzle, emptyCells);
 
     // Set fixed cells & colors

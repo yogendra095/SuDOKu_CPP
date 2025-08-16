@@ -12,7 +12,7 @@ public:
     void createNew(const std::string& name);
     void save();
 
-    //Getters
+    // Get values
     std::string getId() const;
     std::string getName() const;
     int getScore() const;
@@ -22,7 +22,7 @@ public:
     void addDiamonds(int n);
     void reduceDiamonds(int n);
 
-    // Setter
+    // Set values
     void setUnlockedLevel(int lvl); 
     
 };

@@ -21,7 +21,7 @@ bool User::login(const std::string& name) {
         int fileScore, fileDiamonds, fileLevel;
         
         if (iss >> fileId >> fileName >> fileScore >> fileDiamonds >> fileLevel) {
-            if (fileName == name) {  // now it matches properly
+            if (fileName == name) {  // found user
                 id = fileId;
                 this->name = fileName;
                 score = fileScore;
@@ -31,12 +31,12 @@ bool User::login(const std::string& name) {
             }
         }
     }
-    return false; // user not found
+    return false; // not found
 }
 
 
 void User::createNew(const std::string& name) {
-    // Generate truly unique ID using timestamp + random
+    // Make a unique ID
     id = generateId();
     
     this->name = name;
@@ -44,7 +44,7 @@ void User::createNew(const std::string& name) {
     diamonds = 3;
     unlockedLevel = 1;
 
-    // Append directly instead of replacing anyone
+    // Add new user to file
     std::ofstream file("users.txt", std::ios::app);
     file << id << " " << this->name << " "
          << score << " " << diamonds << " "
@@ -57,36 +57,36 @@ void User::save() {
     std::string line;
     bool userFound = false;
     
-    // Read all existing data
+    // Read all users
     while (std::getline(inFile, line)) {
         std::istringstream iss(line);
         std::string fileId, fileName;
         int fileScore, fileDiamonds, fileLevel;
         
-        // Read id as string since it's a string type
+    // Read id as string
         if (iss >> fileId >> fileName >> fileScore >> fileDiamonds >> fileLevel) {
-            if (fileId == this->id) {  // String comparison now works
-                // Replace this user's data with updated info
+            if (fileId == this->id) {  // found this user
+                // Update this user's info
                 lines.push_back(id + " " + name + " " + 
                               std::to_string(score) + " " + std::to_string(diamonds) + 
                               " " + std::to_string(unlockedLevel));
                 userFound = true;
             } else {
-                // Keep existing line unchanged
+                // Keep other users
                 lines.push_back(line);
             }
         }
     }
     inFile.close();
     
-    // If user wasn't found, add as new user
+    // Add new user if not found
     if (!userFound) {
         lines.push_back(id + " " + name + " " + 
                        std::to_string(score) + " " + std::to_string(diamonds) + 
                        " " + std::to_string(unlockedLevel));
     }
     
-    // Rewrite the entire file
+    // Save all users
     std::ofstream outFile("users.txt");
     for (const auto& l : lines) {
         outFile << l << "\n";

@@ -33,7 +33,7 @@ public:
     void handleKeyboardInput(int number, User& user);
     void handleArrowKeys(sf::Keyboard::Key key);
     bool isCompleted() const;
-    int getRemainingTime() const; // in seconds
+    int getRemainingTime() const; // seconds left
     int getDiamonds() const { return diamonds; }
         int getMistakeCount() const;
     void clearSelection();

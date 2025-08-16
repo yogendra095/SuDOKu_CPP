@@ -48,14 +48,14 @@ std::vector<RankingEntry> getRankings() {
 int main() {
     sf::RenderWindow window(sf::VideoMode({800u, 600u}), "Sudoku Login", sf::Style::Default | sf::Style::Resize);
 
-    // Load background
+    // Load the background image
     sf::Texture backgroundTexture;
     if (!backgroundTexture.loadFromFile("assets\\images\\background.jpeg")) {
-        return -1;  // Handle error
+    return -1;  // Couldn't load image
     }
     sf::Sprite backgroundSprite(backgroundTexture);
 
-    // Scale and center background to cover window
+    // Fit background to window
     sf::Vector2u windowSize = window.getSize();
     sf::Vector2u textureSize = backgroundTexture.getSize();
     float scaleX = float(windowSize.x) / textureSize.x;
@@ -67,23 +67,23 @@ int main() {
         (windowSize.y - textureSize.y * scale) / 2.f
     ));
 
-    // Load font
+    // Load the font
     sf::Font font;
     if (!font.openFromFile("assets/fonts/arial.ttf")) {
         std::cerr << "Error loading font\n";
         return -1;
     }
 
-    // Title text
+    // Main title
     sf::Text titleText(font);
     titleText.setString("Sudoku Game - Login");
-    titleText.setCharacterSize(54); // Larger size for emphasis
+    titleText.setCharacterSize(54); // Big title
     titleText.setFillColor(sf::Color(255, 255, 255));
     titleText.setOutlineColor(sf::Color(60, 30, 0));
-    titleText.setOutlineThickness(5); // Thicker outline
+    titleText.setOutlineThickness(5); // Bold outline
     titleText.setStyle(sf::Text::Bold | sf::Text::Underlined);
 
-    // Center the title horizontally (SFML 3 uses position/size)
+    // Center the title
     sf::FloatRect titleBounds = titleText.getLocalBounds();
     titleText.setOrigin(sf::Vector2f(
         titleBounds.position.x + titleBounds.size.x / 2.0f,
@@ -91,13 +91,13 @@ int main() {
     ));
     titleText.setPosition(sf::Vector2f(windowSize.x / 2.0f, 40.f));
 
-    // Optional: Add a shadow for the title
+    // Add a shadow to the title
     sf::Text titleShadow = titleText;
-    titleShadow.setFillColor(sf::Color(0, 0, 0, 120)); // semi-transparent black
+    titleShadow.setFillColor(sf::Color(0, 0, 0, 120)); // Shadow color
     titleShadow.setOutlineThickness(0);
-    titleShadow.move(sf::Vector2f(3.f, 3.f)); // offset for shadow
+    titleShadow.move(sf::Vector2f(3.f, 3.f)); // Move shadow
 
-    // Title after successfully login
+    // Title after login
     sf::Text gameTitleText(font);
     gameTitleText.setString("SuDoKu");
     gameTitleText.setCharacterSize(56);
@@ -107,12 +107,12 @@ int main() {
     gameTitleText.setStyle(sf::Text::Bold | sf::Text::Underlined);
     gameTitleText.setPosition({windowSize.x / 2.f - 120, 40});
 
-    // Menu options
+    // Menu buttons
     sf::Text newUserOption(font);
     newUserOption.setString("New User");
     newUserOption.setCharacterSize(32);
-    newUserOption.setFillColor(sf::Color(40, 40, 60)); // Darker text
-    newUserOption.setOutlineColor(sf::Color(255, 255, 255, 180)); // Light outline
+    newUserOption.setFillColor(sf::Color(40, 40, 60)); // Button color
+    newUserOption.setOutlineColor(sf::Color(255, 255, 255, 180)); // Button outline
     newUserOption.setOutlineThickness(2);
     newUserOption.setStyle(sf::Text::Bold);
     newUserOption.setPosition({windowSize.x / 2.f - 100, 150});
@@ -120,8 +120,8 @@ int main() {
     sf::Text existingUserOption(font);
     existingUserOption.setString("Existing User");
     existingUserOption.setCharacterSize(32);
-    existingUserOption.setFillColor(sf::Color(40, 40, 60)); // Darker text
-    existingUserOption.setOutlineColor(sf::Color(255, 255, 255, 180)); // Light outline
+    existingUserOption.setFillColor(sf::Color(40, 40, 60)); // Button color
+    existingUserOption.setOutlineColor(sf::Color(255, 255, 255, 180)); // Button outline
     existingUserOption.setOutlineThickness(2);
     existingUserOption.setStyle(sf::Text::Bold);
     existingUserOption.setPosition({windowSize.x / 2.f - 100, 200});
@@ -134,7 +134,7 @@ int main() {
     menuPrompt.setOutlineThickness(2);
     menuPrompt.setPosition({windowSize.x / 2.f - 120, 250});
 
-    // Input prompt
+    // Prompt for input
     sf::Text inputPrompt(font);
     inputPrompt.setCharacterSize(26);
     inputPrompt.setFillColor(sf::Color(255, 255, 255));
@@ -142,7 +142,7 @@ int main() {
     inputPrompt.setOutlineThickness(2);
     inputPrompt.setPosition({100, 300});
 
-    // Input display
+    // Show what user types
     sf::Text inputDisplay(font);
     inputDisplay.setString("");
     inputDisplay.setCharacterSize(26);
@@ -151,7 +151,7 @@ int main() {
     inputDisplay.setOutlineThickness(2);
     inputDisplay.setPosition({100, 350});
 
-    // Status message
+    // Show status
     sf::Text statusMessage(font);
     statusMessage.setString("");
     statusMessage.setCharacterSize(22);
@@ -160,7 +160,7 @@ int main() {
     statusMessage.setOutlineThickness(2);
     statusMessage.setPosition({100, 450});
 
-    // Instructions
+    // Show instructions
     sf::Text instructions(font);
     instructions.setString("Press ESC to go back | Enter to confirm");
     instructions.setCharacterSize(18);
@@ -304,11 +304,30 @@ int main() {
                     else if (textEntered->unicode == '\r' || textEntered->unicode == '\n') {
                         if (!userInput.empty()) {
                             if (currentState == LoginState::NEW_USER_NAME) {
-                                user.createNew(userInput);
-                                statusMessage.setString("Welcome " + userInput + "! Your ID is: " + user.getId());
-                                statusMessage.setFillColor(sf::Color::Green);
-                                currentState = LoginState::LOGGED_IN;
-                                showInstructions = false;
+                                // Check if username already exists (case-sensitive)
+                                std::ifstream file("users.txt");
+                                std::string line, existingId, existingName;
+                                bool exists = false;
+                                while (std::getline(file, line)) {
+                                    std::istringstream iss(line);
+                                    iss >> existingId >> existingName;
+                                    if (userInput == existingName) {
+                                        exists = true;
+                                        break;
+                                    }
+                                }
+                                if (exists) {
+                                    statusMessage.setString("Username already exists! Please choose another name.");
+                                    statusMessage.setFillColor(sf::Color::Red);
+                                    userInput = "";
+                                    inputDisplay.setString("");
+                                } else {
+                                    user.createNew(userInput);
+                                    statusMessage.setString("Welcome " + userInput + "! Your ID is: " + user.getId());
+                                    statusMessage.setFillColor(sf::Color::Green);
+                                    currentState = LoginState::LOGGED_IN;
+                                    showInstructions = false;
+                                }
                             }
                             else if (currentState == LoginState::EXISTING_USER_ID) {
                                 if (user.login(userInput)) {
