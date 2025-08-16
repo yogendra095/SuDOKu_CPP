@@ -619,24 +619,8 @@ int main() {
     }
     case LoginState::PLAYING_SUDOKU: {
         if (currentSudoku) {
-            currentSudoku->draw(window);
-
-            // Display remaining time
-            int remainingTime = currentSudoku->getRemainingTime(); // in seconds
-            int minutes = remainingTime / 60;
-            int seconds = remainingTime % 60;
-            timerText.setString("Time: " + std::to_string(minutes) + ":" + (seconds < 10 ? "0" : "") + std::to_string(seconds));
-
-            // Update and center the score text
-            scoreText.setString("Score: " + std::to_string(user.getScore()));
-            sf::FloatRect scoreBounds = scoreText.getLocalBounds();
-            scoreText.setOrigin({scoreBounds.size.x / 2.f, 0});
-            scoreText.setPosition({windowSize.x / 2.f, 20.f});
-
-            // Draw the top bar
-            window.draw(diamondsText);
-            window.draw(scoreText);
-            window.draw(timerText); // draw it on top
+            currentSudoku->draw(window, user);
+            // All top bar info (diamonds, score, time) is now handled inside SudokuGame::draw
         }
         // Draw end message overlay if needed
         if (showEndMessage) {

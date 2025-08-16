@@ -28,7 +28,7 @@ public:
     bool gameOver=false;
     SudokuGame(sf::Font& font, int difficulty = 1, int diamonds = 3);
   
-    void draw(sf::RenderWindow& window);
+    void draw(sf::RenderWindow& window, const User& user);
     void handleMouseClick(sf::Vector2f mousePos);
     void handleKeyboardInput(int number, User& user);
     void handleArrowKeys(sf::Keyboard::Key key);

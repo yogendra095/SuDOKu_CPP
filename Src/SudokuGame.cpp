@@ -81,16 +81,44 @@ void SudokuGame::generateBoard(int difficulty) {
 }
 
 // Draw the board
-void SudokuGame::draw(sf::RenderWindow& window) {
+void SudokuGame::draw(sf::RenderWindow& window, const User& user) {
     const float cellSize = 50.f;
     const float boardSize = cellSize * 9;
     sf::Vector2u winSize = window.getSize();
     sf::Vector2f startPos((winSize.x - boardSize) / 2.f, (winSize.y - boardSize) / 2.f);
 
-    sf::Text diamondText(font, "Diamonds: " + std::to_string(diamonds), 24);
-    diamondText.setFillColor(sf::Color::Magenta);
+    // Improved diamond color: bright gold with dark outline for clarity
+    sf::Text diamondText(font, "Diamonds: " + std::to_string(diamonds), 28);
+    diamondText.setFillColor(sf::Color(255, 223, 34)); // Bright gold
+    diamondText.setOutlineColor(sf::Color(120, 80, 0)); // Dark gold/brown outline
+    diamondText.setOutlineThickness(3.f);
+    diamondText.setStyle(sf::Text::Bold);
     diamondText.setPosition({20.f, 20.f});
     window.draw(diamondText);
+
+    // Refined time color: deep blue with white outline, regular style
+    int remainingTime = getRemainingTime();
+    int minutes = remainingTime / 60;
+    int seconds = remainingTime % 60;
+    std::string timeStr = "Time: " + std::to_string(minutes) + ":" + (seconds < 10 ? "0" : "") + std::to_string(seconds);
+    sf::Text timeText(font, timeStr, 26);
+    timeText.setFillColor(sf::Color(0, 116, 217)); // Deep blue (#0074d9)
+    timeText.setOutlineColor(sf::Color::White);
+    timeText.setOutlineThickness(2.f);
+    timeText.setStyle(sf::Text::Regular);
+    float timeX = window.getSize().x - timeText.getLocalBounds().size.x - 30.f;
+    timeText.setPosition({timeX, 20.f});
+    window.draw(timeText);
+
+    // Refined score color: medium green with white outline, regular style
+    sf::Text scoreText(font, "Score: " + std::to_string(user.getScore()), 26);
+    scoreText.setFillColor(sf::Color(46, 204, 64)); // Medium green (#2ecc40)
+    scoreText.setOutlineColor(sf::Color::White);
+    scoreText.setOutlineThickness(2.f);
+    scoreText.setStyle(sf::Text::Regular);
+    float scoreX = (window.getSize().x - scoreText.getLocalBounds().size.x) / 2.f;
+    scoreText.setPosition({scoreX, 20.f});
+    window.draw(scoreText);
 
 
     // Draw all small cells (thin lines)
