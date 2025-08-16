@@ -50,7 +50,7 @@ int main() {
 
     // Load background
     sf::Texture backgroundTexture;
-    if (!backgroundTexture.loadFromFile("background.jpeg")) {
+    if (!backgroundTexture.loadFromFile("assets\\images\\background.jpeg")) {
         return -1;  // Handle error
     }
     sf::Sprite backgroundSprite(backgroundTexture);
