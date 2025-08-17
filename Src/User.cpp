@@ -1,12 +1,14 @@
 #include "User.hpp"
 #include <fstream>
 #include <sstream>
+#include <ctime>
+#include <cstdlib>
 #include <iomanip>
 #include<vector>
 
 static std::string generateId() {
     return std::to_string(std::time(nullptr)) + std::to_string(rand() % 1000);
-}
+}               //This is only visible in this file so no naming conflict
 
 
 User::User() : score(0), diamonds(3),unlockedLevel(1) {}
@@ -66,20 +68,20 @@ void User::save() {
     // Read id as string
         if (iss >> fileId >> fileName >> fileScore >> fileDiamonds >> fileLevel) {
             if (fileId == this->id) {  // found this user
-                // Update this user's info
+                // Update this user's info if new data found
                 lines.push_back(id + " " + name + " " + 
                               std::to_string(score) + " " + std::to_string(diamonds) + 
                               " " + std::to_string(unlockedLevel));
                 userFound = true;
             } else {
-                // Keep other users
+                // Other wise keep the same
                 lines.push_back(line);
             }
         }
     }
     inFile.close();
     
-    // Add new user if not found
+    // Adds the new user data to the list if it wasn't in the file.
     if (!userFound) {
         lines.push_back(id + " " + name + " " + 
                        std::to_string(score) + " " + std::to_string(diamonds) + 

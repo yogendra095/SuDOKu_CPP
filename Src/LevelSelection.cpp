@@ -32,7 +32,7 @@ LevelSelection::LevelSelection(sf::Font& font, int unlockedLevel)
 
 
 
-bool LevelSelection::run(sf::RenderWindow& window) {
+bool LevelSelection::run(sf::RenderWindow& window, const sf::Sprite* background) {
     selectedLevel = 0;
 
     while (window.isOpen() && selectedLevel == 0) {
@@ -56,6 +56,7 @@ bool LevelSelection::run(sf::RenderWindow& window) {
         }
 
         window.clear(sf::Color::White);
+        if (background) window.draw(*background);
         for (auto& btn : buttons) {
             window.draw(btn.rect);
             window.draw(btn.text);

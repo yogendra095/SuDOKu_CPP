@@ -43,6 +43,6 @@ class LevelSelection {
 
 public:
     LevelSelection(sf::Font& font, int unlockedLevel);
-    bool run(sf::RenderWindow& window);
+    bool run(sf::RenderWindow& window, const sf::Sprite* background = nullptr);
     int getSelectedLevel() const { return selectedLevel; }
 };

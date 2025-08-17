@@ -232,7 +232,7 @@ int main() {
                     } 
                     else if (currentState == LoginState::PLAYING_SUDOKU) {
                         LevelSelection levelSelection(font, user.getUnlockedLevel());
-                        if (levelSelection.run(window)) {
+                        if (levelSelection.run(window, &backgroundSprite)) {
                             currentLevel = levelSelection.getSelectedLevel();
                             int difficulty = 1;
                             if(currentLevel >= 3 && currentLevel <= 4) difficulty = 2;
@@ -448,7 +448,7 @@ int main() {
                 showEndMessage = false;
                 // Instead of just LOGGED_IN, go to level selection
                 LevelSelection levelSelection(font, user.getUnlockedLevel());
-                if (levelSelection.run(window)) {
+                if (levelSelection.run(window, &backgroundSprite)) {
                     currentLevel = levelSelection.getSelectedLevel();
                     int difficulty = 1;
                     if(currentLevel >= 3 && currentLevel <= 4) difficulty = 2;
@@ -607,7 +607,7 @@ int main() {
             gameMenu->setPosition(windowSize.x / 2.f - 100, 200);
             gameMenu->addButton("Play Sudoku", [&](){
                 LevelSelection levelSelection(font, user.getUnlockedLevel());
-                if(levelSelection.run(window)) {
+                if(levelSelection.run(window, &backgroundSprite)) {
                     currentLevel = levelSelection.getSelectedLevel();
                     int difficulty = 1;
                     if(currentLevel >= 3 && currentLevel <= 4) difficulty = 2;
